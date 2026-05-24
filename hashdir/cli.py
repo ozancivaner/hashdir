@@ -1,22 +1,43 @@
 import argparse
-import logging
-import os
+import importlib.metadata
+from typing import List, Optional
 
-from hashdir import __version__, description, name
+from .algorithms import HashAlgorithm
+
+NAME = "hashdir"
+DESCRIPTION = (
+    "A command line tool to calculate hashes of directory trees "
+    "using various hash algorithms."
+)
 
 
-def get_parser():
-    parser = argparse.ArgumentParser(prog=name, description=description)
+def get_version() -> str:
+    try:
+        return importlib.metadata.version(NAME)
+    except importlib.metadata.PackageNotFoundError:
+        return "development"
 
-    parser.add_argument("directory", nargs="?", default=".")
+
+def get_parser() -> argparse.ArgumentParser:
+    version = get_version()
+    parser = argparse.ArgumentParser(prog=NAME, description=DESCRIPTION)
+
+    parser.add_argument(
+        "directory_or_file",
+        nargs="*",
+        default=["."],
+        help="directories or files to hash",
+    )
 
     parser.add_argument(
         "-a",
         "--algorithm",
-        choices=["md5", "sha1", "imohash"],
-        default="md5",
-        help="the hashing algorithm for files. warning: imohash is a constant-time hashing library, "
-        "and while being fast for large files, it produces approximate results.",
+        type=HashAlgorithm,
+        choices=list(HashAlgorithm),
+        default=HashAlgorithm.MD5,
+        help="the hashing algorithm for files. 'imohash' is optional and provides"
+        " constant-time hashing for large files, but produces approximate results."
+        " See documentation for installation.",
     )
 
     parser.add_argument(
@@ -28,9 +49,11 @@ def get_parser():
 
     parser.add_argument(
         "--log-level",
-        choices=["error", "info", "debug"],
-        default="info",
+        type=str.upper,
+        choices=["DEBUG", "INFO", "ERROR"],
+        default="INFO",
         help="set the logging level.",
+        metavar="{debug,info,error}",
     )
 
     parser.add_argument(
@@ -38,24 +61,12 @@ def get_parser():
     )
 
     parser.add_argument(
-        "-v", "--version", action="version", version="{} {}".format(name, __version__)
+        "-v", "--version", action="version", version=f"{NAME} {version}"
     )
 
     return parser
 
 
-def parse_args(args):
+def parse_args(args: Optional[List[str]]) -> argparse.Namespace:
     argument_parser = get_parser()
-    args = argument_parser.parse_args(args)
-    valid = validate_args(args)
-    if valid:
-        return args
-    else:
-        return None
-
-
-def validate_args(args):
-    if not os.path.isdir(args.directory):
-        logging.error("%s is not a directory.", args.directory)
-        return False
-    return True
+    return argument_parser.parse_args(args)

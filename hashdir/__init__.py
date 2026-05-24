@@ -1,4 +1,3 @@
-__version__ = "0.24"
-name = "hashdir"
-description = "A command line tool to calculate hashes of directory"\
-    " trees using various hash algorithms."
+from .core import generate_summary, hash_paths
+
+__all__ = ["generate_summary", "hash_paths"]
