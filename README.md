@@ -10,7 +10,7 @@ A command line tool to calculate hash of directory trees using various hash algo
 ## Installing
 
 > [!WARNING]
-> Due to an administrative issue with the PyPI account, the version currently hosted on PyPI is outdated. To ensure you are using the latest version (0.25.0+), please install directly from the source.
+> Due to an administrative issue with the PyPI account, the version currently hosted on PyPI is outdated. To ensure you are using the latest version (0.25.0+), please install directly from the source or use the docker image (ozancivaner/hashdir).
 
 The recommended way to install `hashdir` is via pipx, which keeps the dependencies isolated.
 
@@ -21,10 +21,29 @@ The recommended way to install `hashdir` is via pipx, which keeps the dependenci
    - **macOS**: `brew install pipx && pipx install .`
    - **Windows**: `pip install pipx && pipx install .`
 
-### Optional Dependencies
+#### Optional Dependencies
 To use the `imohash` algorithm (constant-time hashing for large files), install the optional extra:
 ```bash
 pipx install ".[imohash]"
+```
+
+### Using Docker
+
+To use hashdir as a docker container, run:
+
+```bash
+docker pull ozancivaner/hashdir
+```
+
+Or to build from source, run:
+```bash
+docker build . --tag hashdir
+```
+In the repository root directory.
+
+To use, mount a local directory as a volume:
+```
+docker run -v "/path/to/local/dir:/data" ozancivaner/hashdir:latest /data/
 ```
 
 ---
