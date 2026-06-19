@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hashdir"
+version = "0.25.0"
+description = "A command line tool to calculate hashes of directory trees using various hash algorithms."
+authors = [
+    { name="Ozan Civaner", email="ozancivaner@gmail.com" },
+]
+readme = "README.md"
+license = { text="MIT License" }
+keywords = ["hash", "directory", "imohash", "md5"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/ozancivaner/hashdir"
+
+[project.scripts]
+hashdir = "hashdir.__main__:main"
+
+[tool.setuptools]
+packages = { find = { where = ["."], include = ["hashdir*"] } }
+zip-safe = false
+
+[project.optional-dependencies]
+imohash = [
+    "imohash",
+]
+dev = [
+    "ruff",
+    "docformatter",
+    "pyfakefs",
+    "imohash"
+]
+build = [
+    "build",
+    "twine"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+# Enable a broad set of rules including imperative docstring checks (D401)
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "D",   # pydocstyle
+    "PL",  # pylint-style checks
+]
+ignore = [
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "D203", # Incorrect blank line before class
+    "D213", # Multiline summary second line
+    "PLC0415", # Import outside top level. Disabled for lazy importing
+    "D103", # Missing docstring in public function
+]
