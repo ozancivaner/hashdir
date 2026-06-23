@@ -149,15 +149,13 @@ def deduplicate_file_entries(entries: List[FileEntry]) -> List[FileEntry]:
     logic changes.
     """
     # Sort primarily by rel_path to make the selection deterministic
-    entries.sort(key=lambda x: x.rel_path)
+    sorted_entries = sorted(entries, key=lambda x: x.rel_path)
 
-    unique_entries = []
     seen_full_paths = set()
-    for entry in entries:
+    for entry in sorted_entries:
         if entry.full_path not in seen_full_paths:
             seen_full_paths.add(entry.full_path)
-            unique_entries.append(entry)
-    return unique_entries
+            yield entry
 
 
 def get_files_to_hash(paths: List[str], excluded: List[str]) -> List[FileEntry]:
@@ -165,7 +163,6 @@ def get_files_to_hash(paths: List[str], excluded: List[str]) -> List[FileEntry]:
 
     Produces a list of unique, non-excluded file entries ready for hashing.
     """
-    files = []
     for path_str in paths:
         path = Path(path_str)
         # Existence and symlink checks for root paths are handled in prepare_paths
@@ -173,16 +170,13 @@ def get_files_to_hash(paths: List[str], excluded: List[str]) -> List[FileEntry]:
             # Normalize the file name before exclusion check and FileEntry creation
             file_name_normalized = unicodedata.normalize("NFKD", path.name)
             if not is_excluded(file_name_normalized, excluded):
-                files.append(
-                    FileEntry(
-                        root=str(path.parent),
-                        rel_path=file_name_normalized,
-                        full_path=path_str,
-                    )
+                yield FileEntry(
+                    root=str(path.parent),
+                    rel_path=file_name_normalized,
+                    full_path=path_str,
                 )
         elif path.is_dir():
-            files.extend(get_directory_files(path_str, excluded))
-    return deduplicate_file_entries(files)
+            yield from get_directory_files(path_str, excluded)
 
 
 def get_hash_function(algorithm: HashAlgorithm) -> Optional[Callable[[str], str]]:
@@ -206,6 +200,23 @@ def generate_summary(sorted_file_hashes: List[HashedFileEntry]) -> str:
     )
 
 
+def hash_files(
+    algorithm: HashAlgorithm, files_to_hash: List[FileEntry]
+) -> List[HashedFileEntry]:
+    hash_func = get_hash_function(algorithm)
+    if hash_func is None:
+        raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+    for entry in files_to_hash:
+        file_hash = hash_func(entry.full_path)
+        yield HashedFileEntry(
+            root=entry.root,
+            rel_path=entry.rel_path,
+            full_path=entry.full_path,
+            file_hash=file_hash,
+        )
+
+
 def hash_paths(
     paths: List[str], algorithm: HashAlgorithm, excluded: List[str]
 ) -> HashdirResult:
@@ -214,10 +225,6 @@ def hash_paths(
     Includes input normalization, file discovery, individual file hashing, and final
     aggregate hash generation.
     """
-    hash_func = get_hash_function(algorithm)
-    if hash_func is None:
-        raise ValueError(f"Unsupported algorithm: {algorithm}")
-
     unique_paths = prepare_paths(paths)
 
     # Normalize exclusion patterns to NFKD for consistent matching regardless of source
@@ -225,23 +232,17 @@ def hash_paths(
 
     files_to_hash = get_files_to_hash(unique_paths, normalized_excluded)
 
-    file_hashes = []
-    for entry in files_to_hash:
-        file_hash = hash_func(entry.full_path)
-        file_hashes.append(
-            HashedFileEntry(
-                root=entry.root,
-                rel_path=entry.rel_path,
-                full_path=entry.full_path,
-                file_hash=file_hash,
-            )
-        )
+    files_to_hash_deduplicated = deduplicate_file_entries(files_to_hash)
+
+    file_hashes = hash_files(algorithm, files_to_hash_deduplicated)
 
     # Sort for consistent return value, primarily by hash and then by relative path.
-    file_hashes.sort(key=lambda x: (x.file_hash, x.rel_path))
+    file_hashes_sorted = sorted(file_hashes, key=lambda x: (x.file_hash, x.rel_path))
 
-    summary = generate_summary(file_hashes)
+    summary = generate_summary(file_hashes_sorted)
 
     # Regardless of the algorithm selected, the final summary is always
     # hashed using the SHA1 algorithm.
-    return HashdirResult(entries=file_hashes, aggregate_hash=hash_string_sha1(summary))
+    return HashdirResult(
+        entries=file_hashes_sorted, aggregate_hash=hash_string_sha1(summary)
+    )
