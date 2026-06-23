@@ -21,25 +21,21 @@ To use the `imohash` algorithm (constant-time hashing for large files), install 
 pipx install hashdir[imohash]
 ```
 
+### Using Docker
+
+To use hashdir as a docker image, run:
+
+```bash
+docker run --rm -v $PWD:/data ghcr.io/ozancivaner/hashdir /data/
+```
+
 ### Installing From Source (Latest)
+
 1. Clone the repository: `git clone https://github.com/user/hashdir.git && cd hashdir`
 2. Install using pipx:
    - **Linux**: `pipx install .`
    - **macOS**: `brew install pipx && pipx install .`
    - **Windows**: `pip install pipx && pipx install .`
-
-### Using Docker
-
-To build from source, run:
-```bash
-docker build . --tag ozancivaner/hashdir
-```
-In the repository root directory.
-
-To use, mount a local directory as a volume:
-```
-docker run -v "/path/to/local/dir:/data" ozancivaner/hashdir:latest /data/
-```
 
 ---
 
