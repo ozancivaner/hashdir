@@ -7,6 +7,8 @@
 
 A command line tool to calculate hash of directory trees using various hash algorithms.
 
+<img src="assets/hashdir.gif" width="600" />
+
 ## Installing
 
 The recommended way to install `hashdir` is via pipx, which keeps the dependencies isolated.
