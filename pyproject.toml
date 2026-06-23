@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hashdir"
-version = "0.25.1"
+version = "0.25.2"
 description = "A command line tool to calculate hashes of directory trees using various hash algorithms."
 authors = [
     { name="Ozan Civaner", email="ozancivaner@gmail.com" },
