@@ -61,7 +61,7 @@ class TestPathHandling(HashdirTestCase):
 
         files = get_files_to_hash([unicode_dir], [])
 
-        self.assertEqual(len(files), len(test_cases))
+        self.assertEqual(len(list(files)), len(test_cases))
 
         for f in files:
             # Verify that the relative path is normalized to NFKD regardless
