@@ -1,3 +1,8 @@
+"""Tests base setup.
+
+Files content with pyfakefs
+"""
+
 import os
 
 from pyfakefs.fake_filesystem_unittest import TestCase
@@ -33,5 +38,10 @@ class HashdirTestCase(TestCase):
         )
         self.fs.create_file(
             os.path.join(self.test_dir, "subdir2", "fileE.txt"), contents="content E"
+        )
+        # TLSH requires input >= 50 bytes
+        self.fs.create_file(
+            os.path.join(self.test_dir, "subdir2", "fileF.txt"),
+            contents=bytes(range(256)),
         )
         self.fs.create_file(os.path.join(self.test_dir, "empty.txt"), contents="")

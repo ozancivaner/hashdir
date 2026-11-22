@@ -33,11 +33,19 @@ zip-safe = false
 imohash = [
     "imohash",
 ]
+ssdeep = [
+    "ssdeep",
+]
+tlsh = [
+    "tlsh",
+]
 dev = [
     "ruff",
     "docformatter",
     "pyfakefs",
-    "imohash"
+    "pytest",
+    "imohash",
+    "py-tlsh"
 ]
 build = [
     "build",

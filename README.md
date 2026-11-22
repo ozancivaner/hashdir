@@ -78,9 +78,9 @@ from hashdir.algorithms import HashAlgorithm
 
 # The hash_paths function returns a HashdirResult object
 result = hash_paths(
-    paths=["./my_data"],          # List of directory or file paths
+    paths=["./my_data"],  # List of directory or file paths
     algorithm=HashAlgorithm.MD5,  # The algorithm for individual files (MD5, SHA1, or IMOHASH)
-    excluded=["*.tmp", ".git/*"]  # Optional list of glob patterns to exclude
+    excluded=["*.tmp", ".git/*"],  # Optional list of glob patterns to exclude
 )
 
 # Access the aggregate SHA1 hash of the entire path set
