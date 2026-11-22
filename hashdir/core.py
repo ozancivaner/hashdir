@@ -1,12 +1,24 @@
+"""Hashdir core."""
+
 import logging
 import os
 import unicodedata
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path, PurePath
 from typing import Callable, List, Optional
 
 from .algorithms import HashAlgorithm
-from .hashing import hash_file_imohash, hash_file_md5, hash_file_sha1, hash_string_sha1
+from .hashing import (
+    hash_file_imohash,
+    hash_file_md5,
+    hash_file_sha1,
+    hash_file_sha256,
+    hash_file_sha512,
+    hash_file_ssdeep,
+    hash_file_tlsh,
+    hash_string_sha1,
+)
 
 
 @dataclass(frozen=True)
@@ -138,7 +150,7 @@ def get_directory_files(path: str, excluded: List[str]):
     yield from _scandir_recursive(path, path, excluded)
 
 
-def deduplicate_file_entries(entries: List[FileEntry]) -> List[FileEntry]:
+def deduplicate_file_entries(entries: Iterator[FileEntry]) -> Iterator[FileEntry]:
     """Deduplicate FileEntry objects based on their absolute full_path.
 
     Sorts by rel_path first to ensure deterministic selection of the relative path if a
@@ -158,7 +170,7 @@ def deduplicate_file_entries(entries: List[FileEntry]) -> List[FileEntry]:
             yield entry
 
 
-def get_files_to_hash(paths: List[str], excluded: List[str]) -> List[FileEntry]:
+def get_files_to_hash(paths: List[str], excluded: List[str]) -> Iterator[FileEntry]:
     """Resolve input paths into a flattened list of file entries.
 
     Produces a list of unique, non-excluded file entries ready for hashing.
@@ -179,13 +191,25 @@ def get_files_to_hash(paths: List[str], excluded: List[str]) -> List[FileEntry]:
             yield from get_directory_files(path_str, excluded)
 
 
-def get_hash_function(algorithm: HashAlgorithm) -> Optional[Callable[[str], str]]:
+# pylint: disable=R0911
+def get_hash_function(  # noqa: PLR0911
+    algorithm: HashAlgorithm,
+) -> Optional[Callable[[str], str]]:
+    """Get hash function from HashAlgorithm."""
     if algorithm == HashAlgorithm.MD5:
         return hash_file_md5
     if algorithm == HashAlgorithm.SHA1:
         return hash_file_sha1
+    if algorithm == HashAlgorithm.SHA256:
+        return hash_file_sha256
+    if algorithm == HashAlgorithm.SHA512:
+        return hash_file_sha512
     if algorithm == HashAlgorithm.IMOHASH:
         return hash_file_imohash
+    if algorithm == HashAlgorithm.SSDEEP:
+        return hash_file_ssdeep
+    if algorithm == HashAlgorithm.TLSH:
+        return hash_file_tlsh
     return None
 
 
@@ -201,8 +225,9 @@ def generate_summary(sorted_file_hashes: List[HashedFileEntry]) -> str:
 
 
 def hash_files(
-    algorithm: HashAlgorithm, files_to_hash: List[FileEntry]
-) -> List[HashedFileEntry]:
+    algorithm: HashAlgorithm, files_to_hash: Iterator[FileEntry]
+) -> Iterator[HashedFileEntry]:
+    """Hash multiple files with HashAlgorithm."""
     hash_func = get_hash_function(algorithm)
     if hash_func is None:
         raise ValueError(f"Unsupported algorithm: {algorithm}")
