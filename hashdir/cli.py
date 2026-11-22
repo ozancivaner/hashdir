@@ -9,6 +9,11 @@ DESCRIPTION = (
     "A command line tool to calculate hashes of directory trees "
     "using various hash algorithms."
 )
+EXAMPLES = """Examples
+    `hashdir -a md5 hashdir`
+    `hashdir -m md5,sha1,sha512 --workers 1 hashdir -o hashes.ndjson`
+    `hashdir -m md5,sha1,sha512 --workers 2 --log-level debug  -o hashes.ndjson hashdir`
+"""
 
 
 def get_version() -> str:
@@ -20,7 +25,9 @@ def get_version() -> str:
 
 def get_parser() -> argparse.ArgumentParser:
     version = get_version()
-    parser = argparse.ArgumentParser(prog=NAME, description=DESCRIPTION)
+    parser = argparse.ArgumentParser(
+        prog=NAME, description=DESCRIPTION, epilog=EXAMPLES
+    )
 
     parser.add_argument(
         "directory_or_file",
@@ -62,6 +69,48 @@ def get_parser() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "-v", "--version", action="version", version=f"{NAME} {version}"
+    )
+
+    parser.add_argument(
+        "-m",
+        "--multi-algorithms",
+        default=None,
+        help="Comma-separated cryptographic hashes",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default="hashes.ndjson",
+        help="Output NDJSON file (multi-algorithms only)",
+    )
+    parser.add_argument(
+        "--ssdeep",
+        default=False,
+        action="store_true",
+        help="Enable SSDEEP (multi-algorithms only)",
+    )
+    parser.add_argument(
+        "--tlsh",
+        default=False,
+        action="store_true",
+        help="Enable TLSH (multi-algorithms only)",
+    )
+    parser.add_argument(
+        "--pe",
+        action="store_true",
+        default=False,
+        help="Enable PE metadata and IMPHASH (multi-algorithms only)",
+    )
+    parser.add_argument(
+        "--include-path",
+        action="store_true",
+        help="Include the local path as ScanPath (multi-algorithms only)",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Number of worker threads (multi-algorithms only)",
     )
 
     return parser

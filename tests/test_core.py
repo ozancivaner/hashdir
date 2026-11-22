@@ -4,7 +4,7 @@
 import os
 import unittest
 
-import pytest
+import pytest  # type: ignore
 
 from hashdir.algorithms import HashAlgorithm
 from hashdir.core import (
