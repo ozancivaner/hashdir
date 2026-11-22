@@ -5,6 +5,7 @@ import traceback
 from typing import List
 
 from . import cli, generate_summary, hash_paths, logging_config
+from .export import run_scan_multi
 
 EXIT_CODE_ERROR = 127
 
@@ -18,11 +19,14 @@ def run(args: List[str]) -> None:
 
     logger.setLevel(args.log_level)
 
-    result = hash_paths(args.directory_or_file, args.algorithm, args.exclude)
+    if args.multi_algorithms:
+        run_scan_multi(args)
+    else:
+        result = hash_paths(args.directory_or_file, args.algorithm, args.exclude)
 
-    if not args.quiet:
-        print(generate_summary(result.entries), end="")
-    print(result.aggregate_hash)
+        if not args.quiet:
+            print(generate_summary(result.entries), end="")
+        print(result.aggregate_hash)
 
 
 def main() -> None:
